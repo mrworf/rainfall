@@ -6,8 +6,10 @@ import argparse
 import sys
 import time
 import math
+
 from datetime import datetime
 from threading import Thread
+import gpiozero
 
 #from flask import Flask, request
 #from flask_httpauth import HTTPBasicAuth
@@ -96,10 +98,10 @@ class valve:
   def setEnable(self, enable):
     if enable and self._cbEnable:
       logging.debug('Opening valve')
-      self._cbEnable(userData)
+      self._cbEnable(self._userData)
     elif self._cbDisable:
       logging.debug('Closing valve')
-      self._cbDisable(userData)
+      self._cbDisable(self._userData)
     self.enabled = enable
     return self
 
@@ -167,6 +169,7 @@ class rainfall(Thread):
     self._sprinklers = []
     self._sprinklerid = 0
     self.setDeadline(4, rainfall.DEADLINE_FINISHBY)
+    self.gpiodrv = gpiodrv()
 
   def addSprinkler(self, valve, id=None, name=None, enable=True):
     s = sprinkler(valve, schedule(), enable)
@@ -181,17 +184,21 @@ class rainfall(Thread):
     return s
 
   def load(self):
-    self.addSprinkler(valve(None, None, None),  0, 'Backyard drip').setSchedule(5, 2, 1, 0)
-    self.addSprinkler(valve(None, None, None),  1, 'Backyard lawn (1st half)').setSchedule(5, 2, 2, 0)
-    self.addSprinkler(valve(None, None, None),  2, 'Backyard lawn (2nd half)').setSchedule(5, 2, 2, 0)
-    self.addSprinkler(valve(None, None, None),  3, 'Sideyard tree').setSchedule(5, 2, 2, 1)
-    self.addSprinkler(valve(None, None, None),  4, 'Frontyard tree').setSchedule(15, 2, 1, 0)
-    self.addSprinkler(valve(None, None, None),  5, 'Front hedge').setSchedule(5, 2, 1, 0)
-    self.addSprinkler(valve(None, None, None),  6, 'Front lawn (1st half)').setSchedule(5, 2, 1, 0)
-    self.addSprinkler(valve(None, None, None),  7, 'Front lawn (2nd half plus side)').setSchedule(5, 2, 1, 0)
-    self.addSprinkler(valve(None, None, None),  8, 'New planterbox').setSchedule(10, 2, 1, 0)
-    self.addSprinkler(valve(None, None, None),  9, 'Old planterbox').setSchedule(10, 2, 1, 0)
-    self.addSprinkler(valve(None, None, None), 10, 'Roses along the house').setSchedule(5, 3, 1, 0)
+    # Bank 1:  2,  3,  4, 14, 18, 15, 17, 27
+    # Bank 2: 22, 23, 24, 10,  9, 25,  8, 11
+    #
+    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 2),  0, 'Backyard drip').setSchedule(5, 2, 1, 0)
+    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 3),  1, 'Backyard lawn (1st half)').setSchedule(5, 2, 2, 0)
+    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 4),  2, 'Backyard lawn (2nd half)').setSchedule(5, 2, 2, 0)
+    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 14),  3, 'Sideyard tree').setSchedule(5, 2, 2, 1)
+    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 18),  4, 'Frontyard tree').setSchedule(15, 2, 1, 0)
+    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 15),  5, 'Front hedge').setSchedule(5, 2, 1, 0)
+    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 17),  6, 'Front lawn (1st half)').setSchedule(5, 2, 1, 0)
+    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 27),  7, 'Front lawn (2nd half plus side)').setSchedule(5, 2, 1, 0)
+
+    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 22),  8, 'New planterbox').setSchedule(10, 2, 1, 0)
+    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 23),  9, 'Old planterbox').setSchedule(10, 2, 1, 0)
+    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 24), 10, 'Roses along the house').setSchedule(5, 3, 1, 0)
     self.listSprinkler()
 
   def start(self):
@@ -274,6 +281,26 @@ class rainfall(Thread):
       if sprinkler.id == id and (sprinkler.enabled or not enabledOnly):
         return sprinkler.schedule.cycles * sprinkler.schedule.duration
     return 0
+
+class gpiodrv:
+  def __init__(self):
+    self.pin = None
+    self.hw = None
+    pass
+
+  def enablePin(self, pin):
+    if self.pin != pin:
+      self.pin = pin
+      self.hw = gpiozero.LED(pin, active_high=False)
+
+    self.hw.on()
+
+  def disablePin(self, pin):
+    if self.pin != pin:
+      self.pin = pin
+      self.hw = gpiozero.LED(pin, active_high=False)
+
+    self.hw.off()
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
