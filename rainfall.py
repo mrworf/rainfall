@@ -185,7 +185,7 @@ class rainfall(Thread):
 
   def load(self):
     # Bank 1:  2,  3,  4, 14, 18, 15, 17, 27
-    # Bank 2: 22, 23, 24, 10,  9, 25,  8, 11
+    # Bank 2: 22, 23, 24, 10,  9, 11, 25,  8
     #
     self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 2),  0, 'Backyard drip').setSchedule(5, 2, 1, 0)
     self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 3),  1, 'Backyard lawn (1st half)').setSchedule(5, 2, 2, 0)
