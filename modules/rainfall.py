@@ -30,6 +30,7 @@ from modules.program import program
 from modules.schedule import schedule
 from modules.sprinkler import sprinkler
 from modules.gpiodrv import gpiodrv
+from modules.config import config
 
 class rainfall(Thread):
   DEADLINE_FINISHBY = 0
@@ -41,8 +42,12 @@ class rainfall(Thread):
     self._sprinklerid = 0
     self.setDeadline(4, rainfall.DEADLINE_FINISHBY)
     self.gpiodrv = gpiodrv()
+    self.config = config()
 
-  def addSprinkler(self, valve, id=None, name=None, enable=True):
+  def addSprinkler(self, pin, name):
+    return self.__addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin,  pin),  name=name).setSchedule(1, 1, 1, 0)
+
+  def __addSprinkler(self, valve, id=None, name=None, enable=True):
     s = sprinkler(valve, schedule(), enable)
     if id is None:
       s.setId(self._sprinklerid)
@@ -58,19 +63,36 @@ class rainfall(Thread):
     # Bank 1:  2,  3,  4, 14, 18, 15, 17, 27
     # Bank 2: 22, 23, 24, 10,  9, 11, 25,  8
     #
-    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin,  3),  0, 'Backyard drip').setSchedule(5, 2, 1, 0)
-    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 15),  1, 'Backyard lawn (1st half)').setSchedule(5, 2, 2, 0)
-    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 27),  2, 'Backyard lawn (2nd half)').setSchedule(5, 2, 2, 0)
-    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 22),  3, 'Sideyard tree').setSchedule(5, 2, 2, 1)
-    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin,  8),  4, 'Frontyard tree').setSchedule(15, 2, 1, 0)
-    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 10),  5, 'Front hedge').setSchedule(5, 2, 1, 0)
-    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin,  9),  6, 'Front lawn (1st half)').setSchedule(5, 2, 1, 0)
-    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 11),  7, 'Front lawn (2nd half plus side)').setSchedule(5, 2, 1, 0)
+    self.config.load()
 
-    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 23),  8, 'New planterbox').setSchedule(10, 2, 1, 0)
-    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 25),  9, 'Old planterbox').setSchedule(10, 2, 1, 0)
-    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 24), 10, 'Roses along the house').setSchedule(5, 3, 1, 0)
+    for cfg in self.config.sprinklers:
+      s = self.__addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, cfg['pin']), cfg['id'], cfg['name'], cfg['enabled'] if 'enabled' in cfg else True)
+      s.setSchedule(
+        cfg['schedule']['duration'],
+        cfg['schedule']['cycles'],
+        cfg['schedule']['days'],
+        cfg['schedule']['shift']
+      )
+
     self.listSprinkler()
+
+  def save(self):
+    self.config.sprinkers = []
+    for s in self._sprinklers:
+      self.config.sprinklers.append(
+        {
+          'name' : s.name,
+          'id' : s.id,
+          'pin' : s.valve.getUserData(),
+          'enabled' : s.enabled,
+          'schedule' : {
+            'duration' : s.schedule.duration,
+            'cycles' : s.schedule.cycles,
+            'days' : s.schedule.days,
+            'shift' : s.schedule.shift
+          }
+        })
+      self.config.save()
 
   def start(self):
     self.quit = False
@@ -82,8 +104,6 @@ class rainfall(Thread):
       time.sleep(1) # Uhm, no, not great, but lazy for now
       dt = datetime.today()
       now = (dt.hour * 60 + dt.minute)
-      #logging.debug('Current time: %d:%02d - Deadline: %d:%02d - Estimated start time: %d:%02d', now / 60, now % 60, self.deadline / 60, self.deadline % 60, self.getStartTime() / 60, self.getStartTime() % 60)
-      #print('\x1b[A\x1b[KCurrent time: %d:%02d - Deadline: %d:%02d - Estimated start time: %d:%02d' % (now / 60, now % 60, self.deadline / 60, self.deadline % 60, self.getStartTime() / 60, self.getStartTime() % 60))
       run = False
       if self.deadlineMode == rainfall.DEADLINE_FINISHBY and now == self.getStartTime():
         deadline = self.getStartTime()

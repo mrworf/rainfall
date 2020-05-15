@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 #
 # This file is part of rainfall (https://github.com/mrworf/rainfall).
 #
@@ -15,27 +16,21 @@
 # along with rainfall.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import logging
+import json
 
-class valve:
-  def __init__(self, cbEnable, cbDisable, userData):
-    self._cbEnable = cbEnable
-    self._cbDisable = cbDisable
-    self._userData = userData
-    self.enabled = False
-    if not cbEnable or not cbDisable:
-      logging.warning('No actual way of enabling/disabling valve')
+class config:
+  def __init__(self):
+    self.sprinklers = []
+    self.config = {'start-time' : 400}
 
-  def getUserData(self):
-    return self._userData
+  def save(self):
+    with open('sprinklers.json', 'w') as f:
+      json.dump(self.sprinklers, f, ensure_ascii=False)
+    with open('config.json', 'w') as f:
+      json.dump(self.config, f, ensure_ascii=False)
 
-  def setEnable(self, enable):
-    if enable and self._cbEnable:
-      logging.debug('Opening valve')
-      self._cbEnable(self._userData)
-    elif self._cbDisable:
-      logging.debug('Closing valve')
-      self._cbDisable(self._userData)
-    self.enabled = enable
-    return self
-
+  def load(self):
+    with open('sprinklers.json', 'r') as f:
+      self.sprinklers = json.load(f)
+    with open('config.json', 'r') as f:
+      self.config = json.load(f)
