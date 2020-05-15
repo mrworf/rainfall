@@ -1,0 +1,10 @@
+[Unit]
+Description=Sprinkler System
+After=network.target
+
+[Service]
+ExecStart=/opt/rainfall/rainfall.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
