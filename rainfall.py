@@ -187,17 +187,17 @@ class rainfall(Thread):
     # Bank 1:  2,  3,  4, 14, 18, 15, 17, 27
     # Bank 2: 22, 23, 24, 10,  9, 11, 25,  8
     #
-    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 2),  0, 'Backyard drip').setSchedule(5, 2, 1, 0)
-    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 3),  1, 'Backyard lawn (1st half)').setSchedule(5, 2, 2, 0)
-    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 4),  2, 'Backyard lawn (2nd half)').setSchedule(5, 2, 2, 0)
-    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 14),  3, 'Sideyard tree').setSchedule(5, 2, 2, 1)
-    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 18),  4, 'Frontyard tree').setSchedule(15, 2, 1, 0)
-    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 15),  5, 'Front hedge').setSchedule(5, 2, 1, 0)
-    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 17),  6, 'Front lawn (1st half)').setSchedule(5, 2, 1, 0)
-    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 27),  7, 'Front lawn (2nd half plus side)').setSchedule(5, 2, 1, 0)
+    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin,  3),  0, 'Backyard drip').setSchedule(5, 2, 1, 0)
+    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 15),  1, 'Backyard lawn (1st half)').setSchedule(5, 2, 2, 0)
+    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 27),  2, 'Backyard lawn (2nd half)').setSchedule(5, 2, 2, 0)
+    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 22),  3, 'Sideyard tree').setSchedule(5, 2, 2, 1)
+    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin,  8),  4, 'Frontyard tree').setSchedule(15, 2, 1, 0)
+    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 10),  5, 'Front hedge').setSchedule(5, 2, 1, 0)
+    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin,  9),  6, 'Front lawn (1st half)').setSchedule(5, 2, 1, 0)
+    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 11),  7, 'Front lawn (2nd half plus side)').setSchedule(5, 2, 1, 0)
 
-    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 22),  8, 'New planterbox').setSchedule(10, 2, 1, 0)
-    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 23),  9, 'Old planterbox').setSchedule(10, 2, 1, 0)
+    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 23),  8, 'New planterbox').setSchedule(10, 2, 1, 0)
+    self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 25),  9, 'Old planterbox').setSchedule(10, 2, 1, 0)
     self.addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, 24), 10, 'Roses along the house').setSchedule(5, 3, 1, 0)
     self.listSprinkler()
 
@@ -212,7 +212,7 @@ class rainfall(Thread):
       dt = datetime.today()
       now = (dt.hour * 60 + dt.minute)
       #logging.debug('Current time: %d:%02d - Deadline: %d:%02d - Estimated start time: %d:%02d', now / 60, now % 60, self.deadline / 60, self.deadline % 60, self.getStartTime() / 60, self.getStartTime() % 60)
-      print('\x1b[A\x1b[KCurrent time: %d:%02d - Deadline: %d:%02d - Estimated start time: %d:%02d' % (now / 60, now % 60, self.deadline / 60, self.deadline % 60, self.getStartTime() / 60, self.getStartTime() % 60))
+      #print('\x1b[A\x1b[KCurrent time: %d:%02d - Deadline: %d:%02d - Estimated start time: %d:%02d' % (now / 60, now % 60, self.deadline / 60, self.deadline % 60, self.getStartTime() / 60, self.getStartTime() % 60))
       run = False
       if self.deadlineMode == rainfall.DEADLINE_FINISHBY and now == self.getStartTime():
         deadline = self.getStartTime()
