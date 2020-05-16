@@ -16,6 +16,7 @@
 #
 
 import gpiozero
+import logging
 
 class gpiodrv:
   def __init__(self):
@@ -25,14 +26,18 @@ class gpiodrv:
 
   def enablePin(self, pin):
     if self.pin != pin:
+      if self.pin is not None and self.hw is not None:
+        logging.debug('Turning off pin %d', self.pin)
+        self.hw.off()
       self.pin = pin
       self.hw = gpiozero.LED(pin, active_high=False)
-
+    logging.debug('Turning on pin %d', pin)
     self.hw.on()
 
   def disablePin(self, pin):
     if self.pin != pin:
-      self.pin = pin
-      self.hw = gpiozero.LED(pin, active_high=False)
+      # Not enabled in the first place
+      return
 
+    logging.debug('Turning off pin %d', pin)
     self.hw.off()

@@ -16,6 +16,7 @@
 #
 
 import logging
+import time
 
 class valve:
   def __init__(self, cbEnable, cbDisable, userData):
@@ -23,6 +24,7 @@ class valve:
     self._cbDisable = cbDisable
     self._userData = userData
     self.enabled = False
+    self.enableAt = None
     if not cbEnable or not cbDisable:
       logging.warning('No actual way of enabling/disabling valve')
 
@@ -32,9 +34,11 @@ class valve:
   def setEnable(self, enable):
     if enable and self._cbEnable:
       logging.debug('Opening valve')
+      self.enableAt = time.time()
       self._cbEnable(self._userData)
-    elif self._cbDisable:
+    elif self.enabled and self._cbDisable:
       logging.debug('Closing valve')
+      self.enableAt = None
       self._cbDisable(self._userData)
     self.enabled = enable
     return self

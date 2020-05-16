@@ -23,7 +23,7 @@ import time
 import math
 
 from datetime import datetime
-from threading import Thread
+from threading import Thread, Event
 
 from modules.valve import valve
 from modules.program import program
@@ -36,6 +36,11 @@ class rainfall(Thread):
   DEADLINE_FINISHBY = 0
   DEADLINE_START = 1
 
+  MAX_RUNTIME = 30*60
+
+  EVT_OPEN = 1
+  EVT_CLOSE = 2
+
   def __init__(self):
     Thread.__init__(self)
     self._sprinklers = []
@@ -43,9 +48,19 @@ class rainfall(Thread):
     self.setDeadline(4, rainfall.DEADLINE_FINISHBY)
     self.gpiodrv = gpiodrv()
     self.config = config()
+    self.events = []
+    self.delayer = Event()
 
   def addSprinkler(self, pin, name):
     return self.__addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin,  pin),  name=name).setSchedule(1, 1, 1, 0)
+
+  def deleteSprinkler(self, id):
+    s = self.getSprinkler(id)
+    if s is not None:
+      s.valve.setEnable(False)
+      self._sprinklers.remove(s)
+      return True
+    return False
 
   def __addSprinkler(self, valve, id=None, name=None, enable=True):
     s = sprinkler(valve, schedule(), enable)
@@ -65,7 +80,12 @@ class rainfall(Thread):
     #
     self.config.load()
 
+    clean = False
     for cfg in self.config.sprinklers:
+      if self.getSprinkler(cfg['id']):
+        logging.warning('Sprinkler with ID %d already exists, skipping', cfg['id'])
+        clean=True
+        continue
       s = self.__addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin, cfg['pin']), cfg['id'], cfg['name'], cfg['enabled'] if 'enabled' in cfg else True)
       s.setSchedule(
         cfg['schedule']['duration'],
@@ -74,10 +94,14 @@ class rainfall(Thread):
         cfg['schedule']['shift']
       )
 
+    if clean:
+      logging.info('Saving cleaned sprinkler list')
+      self.save()
+
     self.listSprinkler()
 
   def save(self):
-    self.config.sprinkers = []
+    self.config.sprinklers = []
     for s in self._sprinklers:
       self.config.sprinklers.append(
         {
@@ -101,7 +125,22 @@ class rainfall(Thread):
   def run(self):
     self.program = program(self._sprinklers)
     while not self.quit:
-      time.sleep(1) # Uhm, no, not great, but lazy for now
+      self.delayer.wait(30) # +/- 30s response time
+      self.delayer.clear()
+      # Handle potential events
+      while len(self.events) > 0:
+        evt = self.events.pop(0)
+        if evt['event'] == rainfall.EVT_OPEN:
+          self.getSprinkler(evt['value']).valve.setEnable(True)
+        elif evt['event'] == rainfall.EVT_CLOSE:
+          self.getSprinkler(evt['value']).valve.setEnable(False)
+
+      # Watchdog!
+      for s in self._sprinklers:
+        if s.valve.enableAt is not None and (time.time() - s.valve.enableAt) > rainfall.MAX_RUNTIME:
+          logging.error('Valve %d (%s), pin #%d has been open for %d seconds which exceeds max runtime (%d). Closing', s.id, s.name, s.valve.getUserData(), (time.time() - s.valve.enableAt), rainfall.MAX_RUNTIME)
+          s.valve.setEnable(False)
+
       dt = datetime.today()
       now = (dt.hour * 60 + dt.minute)
       run = False
@@ -137,18 +176,14 @@ class rainfall(Thread):
       deadline += (24*60)
     return deadline % 1440
 
-
   def getSprinkler(self, id):
-    for _sprinkler in self._sprinklers:
-      if _sprinkler.valve.id == id:
-        return _sprinkler
+    for s in self._sprinklers:
+      if s.id == id:
+        return s
     return None
 
   def getSprinklers(self):
-    result = []
-    for s in self._sprinklers:
-      result.append({'id' : s.id, 'name' : s.name, 'enabled' : s.enabled, 'running' : s.valve.enabled})
-    return result
+    return self._sprinklers
 
   def listSprinkler(self):
     for _sprinkler in self._sprinklers:
@@ -176,3 +211,13 @@ class rainfall(Thread):
       if _sprinkler.id == id and (_sprinkler.enabled or not enabledOnly):
         return _sprinkler.schedule.cycles * _sprinkler.schedule.duration
     return 0
+
+  def addEvent(self, event, value):
+    self.events.append({'event':event, 'value':value})
+    self.delayer.set()
+
+  def openSprinkler(self, id, open):
+    self.addEvent(rainfall.EVT_OPEN if open else rainfall.EVT_CLOSE, id)
+
+  def setGroup(self, id, group):
+    pass # Not yet implemented

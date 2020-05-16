@@ -22,7 +22,7 @@ import argparse
 import sys
 import json
 
-from flask import Flask, request, send_file, abort, jsonify
+from flask import Flask, request, send_file, abort, jsonify, make_response
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.exceptions import HTTPException
 
@@ -52,17 +52,129 @@ app = Flask(__name__, static_url_path='')
 rf = rainfall()
 
 """ So we can host the content here as well """
-@app.route('/<string:type>/<path:path>', defaults={'type':None, 'path':None})
+@app.route('/', defaults={'path':None})
+@app.route('/js/<path:path>', defaults={'path':None})
+@app.route('/css/<path:path>', defaults={'path':None})
+@app.route('/img/<path:path>', defaults={'path':None})
 def file_resources(type, path):
-  if type is None and path is None:
+  print('Hello')
+  if path is None:
     return send_file('html/index.html')
-  if type not in ['js', 'css', 'img']:
-    return abort(404)
-  return send_file('html/%s/%s' % (type, path))
+  elif '/js/' in self.getRequest().url:
+    return send_file('html/js/%s' % path)
+  elif '/ccs/' in self.getRequest().url:
+    return send_file('html/ccs/%s' % path)
+  elif '/img/' in self.getRequest().url:
+    return send_file('html/img/%s' % path)
+  return abort(404)
 
-@app.route('/sprinklers')
-def get_sprinklers():
-  return jsonify(rf.getSprinklers())
+@app.route('/sprinklers', defaults={'id': None})
+@app.route('/sprinklers/<int:id>')
+def get_sprinkler(id):
+  result = None
+  if id is None:
+    result = []
+    for s in rf.getSprinklers():
+      result.append({
+        'id' : s.id,
+        'name' : s.name,
+        'enabled' : s.enabled,
+        'running' : s.valve.enabled,
+        'pin' : s.valve.getUserData(),
+        'group' : 0,
+        'schedule' : {
+          'duration' : s.schedule.duration,
+          'cycles' : s.schedule.cycles,
+          'days' : s.schedule.days,
+          'shift' : s.schedule.shift,
+        }
+      })
+  else:
+    s = rf.getSprinkler(id)
+    result = {
+      'id' : s.id,
+      'name' : s.name,
+      'enabled' : s.enabled,
+      'running' : s.valve.enabled,
+      'pin' : s.valve.getUserData(),
+      'group' : 0,
+      'schedule' : {
+        'duration' : s.schedule.duration,
+        'cycles' : s.schedule.cycles,
+        'days' : s.schedule.days,
+        'shift' : s.schedule.shift,
+      }
+    }
+  return jsonify(result)
+
+@app.route('/sprinkler/<int:id>', methods=['GET', 'POST'])
+def control_sprinkler(id):
+  j = None
+  if 'POST' == request.method:
+    j = request.json
+
+  if j is not None:
+    if 'open' in j:
+      rf.openSprinkler(id, j['open'])
+    if 'name' in j:
+      rf.getSprinkler(id).setName(j['name'])
+    if 'enable' in j:
+      rf.getSprinkler(id).setEnable(j['enable'])
+    if 'group' in j:
+      rf.getSprinkler(id).setGroup(j['group'])
+    rf.save()
+  return get_sprinkler(id)
+
+@app.route('/schedule/<int:id>', methods=['GET', 'POST'])
+def control_schedule(id):
+  j = None
+  if 'POST' == request.method:
+    j = request.json
+
+  if j is not None:
+    if 'duration' in j:
+      rf.getSprinkler(id).schedule.setDuration(j['duration'])
+    if 'cycles' in j:
+      rf.getSprinkler(id).schedule.setCycles(j['cycles'])
+    if 'days' in j:
+      rf.getSprinkler(id).schedule.setDays(j['days'])
+    if 'shift' in j:
+      rf.getSprinkler(id).schedule.setShift(j['shift'])
+    rf.save()
+  s = rf.getSprinkler(id)
+  return jsonify({
+    'duration' : s.schedule.duration,
+    'cycles' : s.schedule.cycles,
+    'days' : s.schedule.days,
+    'shift' : s.schedule.shift,
+  })
+
+@app.route('/add', methods=['POST'])
+def control_add():
+  j = request.json
+  for f in ['enabled', 'name', 'group', 'schedule', 'pin']:
+    if f not in j:
+      logging.error('Adding sprinkler missing field %s', f)
+      return abort(500)
+  for f in ['duration', 'cycles', 'days', 'shift']:
+    if f not in j['schedule']:
+      logging.error('Adding sprinkler missing schedule field %s', f)
+      return abort(500)
+  s = rf.addSprinkler(j['pin'], j['name'])
+  s.setEnable(j['enabled'])
+  s.setSchedule(j['schedule']['duration'], j['schedule']['cycles'], j['schedule']['days'], j['schedule']['shift'])
+  rf.save()
+  return get_sprinkler(s.id)
+
+@app.route('/delete', methods=['POST'])
+def control_delete():
+  j = request.json
+  if 'id' in j:
+    if rf.deleteSprinkler(j['id']):
+      rf.save()
+      return make_response('', 200)
+  return abort(404)
+
 
 rf.load()
 rf.start()
