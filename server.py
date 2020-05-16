@@ -22,7 +22,7 @@ import argparse
 import sys
 import json
 
-from flask import Flask, request, send_file, abort, jsonify, make_response
+from flask import Flask, request, send_file, abort, jsonify, make_response, send_from_directory
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.exceptions import HTTPException
 
@@ -52,20 +52,19 @@ app = Flask(__name__, static_url_path='')
 rf = rainfall()
 
 """ So we can host the content here as well """
+@app.route('/js/<path:path>')
+@app.route('/css/<path:path>')
+@app.route('/img/<path:path>')
 @app.route('/', defaults={'path':None})
-@app.route('/js/<path:path>', defaults={'path':None})
-@app.route('/css/<path:path>', defaults={'path':None})
-@app.route('/img/<path:path>', defaults={'path':None})
-def file_resources(type, path):
-  print('Hello')
+def file_resources(path):
   if path is None:
     return send_file('html/index.html')
-  elif '/js/' in self.getRequest().url:
-    return send_file('html/js/%s' % path)
-  elif '/ccs/' in self.getRequest().url:
-    return send_file('html/ccs/%s' % path)
-  elif '/img/' in self.getRequest().url:
-    return send_file('html/img/%s' % path)
+  elif '/js/' in request.url:
+    return send_from_directory('html/js', path)
+  elif '/ccs/' in request.url:
+    return send_from_directory('html/ccs', path)
+  elif '/img/' in request.url:
+    return send_from_directory('html/img', path)
   return abort(404)
 
 @app.route('/sprinklers', defaults={'id': None})
