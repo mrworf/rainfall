@@ -22,7 +22,7 @@ import argparse
 import sys
 import json
 
-from flask import Flask, request
+from flask import Flask, request, send_file, abort, jsonify
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.exceptions import HTTPException
 
@@ -48,10 +48,22 @@ logging.getLogger("Flask-Cors").setLevel(logging.ERROR)
 logging.getLogger("werkzeug").setLevel(logging.ERROR)
 
 """ Initialize the REST server """
-app = Flask(__name__, static_url_path='/html/')
-#cors = CORS(app) # Needed to make us CORS compatible
-
+app = Flask(__name__, static_url_path='')
 rf = rainfall()
+
+""" So we can host the content here as well """
+@app.route('/<string:type>/<path:path>', defaults={'type':None, 'path':None})
+def file_resources(type, path):
+  if type is None and path is None:
+    return send_file('html/index.html')
+  if type not in ['js', 'css', 'img']:
+    return abort(404)
+  return send_file('html/%s/%s' % (type, path))
+
+@app.route('/sprinklers')
+def get_sprinklers():
+  return jsonify(rf.getSprinklers())
+
 rf.load()
 rf.start()
-app.run()
+app.run(debug=False, port=cmdline.port, host=cmdline.listen)

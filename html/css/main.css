@@ -1,0 +1,37 @@
+body {
+  font-family: Verdana;
+  font-size: 10pt;
+}
+span.name  {
+  width: 300px;
+  display: inline-block;
+}
+
+button {
+  width: 100px;
+}
+
+div {
+  margin: 2px;
+}
+
+div#msg {
+  border: 1px dotted;
+  padding: 10px;
+}
+
+button#override {
+  margin-top: 20px;
+  border: 5px #aa0000 solid;
+  padding: 5px;
+  background-color: #ff0000;
+  width: 300px;
+}
+
+img {
+  border: 3px inset;
+  display: block;
+  position: absolute;
+  top: 0; bottom:0; left: 0; right:0;
+  margin: auto;
+}

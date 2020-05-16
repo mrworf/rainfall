@@ -144,6 +144,12 @@ class rainfall(Thread):
         return _sprinkler
     return None
 
+  def getSprinklers(self):
+    result = []
+    for s in self._sprinklers:
+      result.append({'id' : s.id, 'name' : s.name, 'enabled' : s.enabled, 'running' : s.valve.enabled})
+    return result
+
   def listSprinkler(self):
     for _sprinkler in self._sprinklers:
       logging.debug('%3d : (%3s | %-8s) %-40s %2dmin, %2d cycles, Every %2d days (shifted %d days)' % (
