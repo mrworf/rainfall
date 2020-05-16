@@ -174,7 +174,6 @@ def control_delete():
       return make_response('', 200)
   return abort(404)
 
-
 rf.load()
 rf.start()
 app.run(debug=False, port=cmdline.port, host=cmdline.listen)
