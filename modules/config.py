@@ -24,13 +24,13 @@ class config:
     self.config = {'start-time' : 400}
 
   def save(self):
-    with open('sprinklers.json', 'w') as f:
+    with open('conf/sprinklers.json', 'w') as f:
       json.dump(self.sprinklers, f, ensure_ascii=False)
-    with open('config.json', 'w') as f:
+    with open('conf/config.json', 'w') as f:
       json.dump(self.config, f, ensure_ascii=False)
 
   def load(self):
-    with open('sprinklers.json', 'r') as f:
+    with open('conf/sprinklers.json', 'r') as f:
       self.sprinklers = json.load(f)
-    with open('config.json', 'r') as f:
+    with open('conf/config.json', 'r') as f:
       self.config = json.load(f)
