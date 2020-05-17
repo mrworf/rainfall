@@ -21,7 +21,18 @@
 
     <div class="input-group mb-3 d-none" id="template">
       <div class="input-group-prepend">
-        <button id="open" class="btn btn-primary">Manual</button>
+        <button id="open" class="btn btn-primary" title="Manually control sprinkler station">
+          <svg class="bi bi-play" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" d="M10.804 8L5 4.633v6.734L10.804 8zm.792-.696a.802.802 0 010 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696l6.363 3.692z" clip-rule="evenodd"/>
+          </svg>
+        </button>
+        <span class="input-group-text" id="basic-addon1" title="Which GPIO is used on Raspberry Pi">
+          <svg class="bi bi-plug" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 5h8v3a4 4 0 01-8 0V5z"/>
+            <path fill-rule="evenodd" d="M6 1.5a.5.5 0 01.5.5v3a.5.5 0 01-1 0V2a.5.5 0 01.5-.5zm4 0a.5.5 0 01.5.5v3a.5.5 0 01-1 0V2a.5.5 0 01.5-.5zM7.115 13.651c.256-.511.385-1.408.385-2.651h1c0 1.257-.121 2.36-.49 3.099-.191.381-.47.707-.87.877-.401.17-.845.15-1.298-.002-.961-.32-1.534-.175-1.851.046-.33.23-.491.615-.491.98h-1c0-.635.278-1.353.918-1.8.653-.456 1.58-.561 2.74-.174.297.099.478.078.592.03.115-.05.244-.161.365-.405z" clip-rule="evenodd"/>
+          </svg>
+          <span id="gpio" style="width: 13pt">123</span>
+        </span>
       </div>
       <input id="name" type="text" class="form-control" aria-label="Name" placeholder="(name of sprinkler)">
       <div class="input-group-prepend">
@@ -33,7 +44,7 @@
         <option value="10">10 minutes</option>
         <option value="15">15 minutes</option>
       </select>
-      <div class="input-group-prepend">
+      <div class="input-group-prepend" title="Times run during program">
         <label class="input-group-text" for="inputGroupSelect02">Cycle</label>
       </div>
       <select id="cycles" class="custom-select" id="inputGroupSelect02">
@@ -60,7 +71,7 @@
           <option value="13">13th day</option>
           <option value="14">14th day</option>
       </select>
-      <div class="input-group-prepend">
+      <div class="input-group-prepend" title="Shift start day">
         <label class="input-group-text" for="inputGroupSelect03">Shift</label>
       </div>
       <select id="shift" class="custom-select" id="inputGroupSelect03">
@@ -81,17 +92,32 @@
           <option value="14">14 days</option>
       </select>
       <div class="input-group-append">
-        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Options</button>
-        <div class="dropdown-menu">
-          <a id="enable" class="dropdown-item" href="#">Disable</a>
-          <a id="pin" class="dropdown-item" href="#">Change PIN</a>
-          <div role="separator" class="dropdown-divider"></div>
-          <a id="delete" class="dropdown-item " href="#">Delete</a>
+          <button id="enable" class="btn btn-success" title="Should station be part of program?">
+            <svg class="bi bi-power" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path fill-rule="evenodd" d="M5.578 4.437a5 5 0 104.922.044l.5-.866a6 6 0 11-5.908-.053l.486.875z" clip-rule="evenodd"/>
+              <path fill-rule="evenodd" d="M7.5 8V1h1v7h-1z" clip-rule="evenodd"/>
+            </svg>
+          </button>
+          <button id="pin" class="btn btn-info">
+            <svg class="bi bi-info-circle" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path fill-rule="evenodd" d="M8 15A7 7 0 108 1a7 7 0 000 14zm0 1A8 8 0 108 0a8 8 0 000 16z" clip-rule="evenodd"/>
+              <path d="M8.93 6.588l-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588z"/>
+              <circle cx="8" cy="4.5" r="1"/>
+            </svg>
+          </button>
+          <button id="delete" class="btn btn-danger">
+            <svg class="bi bi-trash" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5.5 5.5A.5.5 0 016 6v6a.5.5 0 01-1 0V6a.5.5 0 01.5-.5zm2.5 0a.5.5 0 01.5.5v6a.5.5 0 01-1 0V6a.5.5 0 01.5-.5zm3 .5a.5.5 0 00-1 0v6a.5.5 0 001 0V6z"/>
+              <path fill-rule="evenodd" d="M14.5 3a1 1 0 01-1 1H13v9a2 2 0 01-2 2H5a2 2 0 01-2-2V4h-.5a1 1 0 01-1-1V2a1 1 0 011-1H6a1 1 0 011-1h2a1 1 0 011 1h3.5a1 1 0 011 1v1zM4.118 4L4 4.059V13a1 1 0 001 1h6a1 1 0 001-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z" clip-rule="evenodd"/>
+            </svg>
+          </button>
         </div>
       </div>
     </div>
     <div id="sprinklers"></div>
     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addSprinklerDialog">Add sprinkler</button>
+    <button id="runProgram" type="button" class="btn btn-secondary">Run program</button>
+    <button id="showSettings" type="button" class="btn btn-secondary">Other settings</button>
 
     <div id="addSprinklerDialog" class="modal" tabindex="-1" role="dialog">
       <div class="modal-dialog" role="document">
@@ -119,6 +145,67 @@
           <div class="modal-footer">
             <button type="button" class="btn btn-primary" id="add">Add</button>
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="otherSettings" class="modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Other settings</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <!-- -->
+            <div class="input-group mb-3">
+              <select class="custom-select" id="timing">
+                <option value="0">Finish by</option>
+                <option value="1">Start at</option>
+              </select>
+              <input id="time" type="text" class="form-control" aria-label="HH:MM" placeholder="(24h time)">
+            </div>
+            <p class="text-left">
+              "Start at" will start the sprinkler program at that specific time
+            </p>
+            <p class="text-left">
+              "Finish by" will start the sprinkler program so it finishes at the selected time
+            </p>
+            <p class="text-left">
+              All times are given in military time (for now).
+            </p>
+            <p class="text-left">
+               Meaning that 400 = 4am, 1430 = 2.30pm
+            </p>
+
+            <!-- -->
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" id="save">Save</button>
+            <button type="button" class="btn btn-secondary" id="cancel">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="programRunning" class="modal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false" >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">System status</h5>
+          </div>
+          <div class="modal-body">
+            <!-- -->
+            <p class="text-center">
+              Sprinklers are currently running
+            </p>
+            <!-- -->
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger" id="stopProgram">Stop program</button>
           </div>
         </div>
       </div>

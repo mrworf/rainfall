@@ -74,6 +74,7 @@ class program(Thread):
       cycle += 1
       logging.info('Starting cycle #%d', cycle)
       for self.active in self.work:
+        if self.quit: break
         sprinkler = self.active['sprinkler']
         if self.active['cycles'] < sprinkler.schedule.cycles:
           logging.info('Running sprinkler %2d (%s) for %d minutes (cycle %d of %d)' % (

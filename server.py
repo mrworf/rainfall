@@ -174,6 +174,32 @@ def control_delete():
       return jsonify({'deleted' : j['id']})
   return abort(404)
 
+@app.route('/settings', methods=['GET', 'POST'])
+def settings():
+  if request.method == 'GET':
+    return jsonify(rf.config.config)
+  else:
+    for k in request.json:
+      if k in rf.config.config:
+        rf.config.config[k] = request.json[k];
+      else:
+        return abort(404)
+    rf.save()
+    rf.settingsChanged()
+    return jsonify(rf.config.config)
+
+@app.route('/program', methods=['POST', 'GET'])
+def program():
+  if request.method == 'GET':
+    return jsonify({'running' : rf.programRunning})
+  else:
+    if 'stop' in request.json:
+      rf.programStop()
+      return jsonify({'running' : False})
+    elif 'start' in request.json:
+      rf.programStart()
+    return jsonify({'running' : rf.programRunning})
+
 rf.load()
 rf.start()
 app.run(debug=False, port=cmdline.port, host=cmdline.listen)

@@ -1,3 +1,20 @@
+function loadSettings()
+{
+  $.ajax({
+      type:"GET",
+      contentType: "application/json; charset=utf-8",
+      dataType: "json",
+      url: '/settings',
+  }).done(function(e, data) {
+    for(i in e) {
+      $('#otherSettings').find('#' + i).val(e[i]);
+    }
+  }).fail(function(e, data) {
+    alert('Unable to load settings, please reload');
+  });
+
+}
+
 function updateBackend(thiz, value)
 {
   j = jQuery(thiz);
@@ -49,26 +66,26 @@ function updateBackend(thiz, value)
 function toggleEnable(thiz)
 {
   j = jQuery(thiz);
-  s = j.parent().parent().parent().data('sprinkler')
+  s = j.parent().parent().data('sprinkler')
   if (s.enabled) {
-    j.text('Enable');
+    j.removeClass('btn-success').addClass('btn-secondary');
     updateBackend(thiz, false);
   } else {
-    j.text('Disable');
+    j.removeClass('btn-secondary').addClass('btn-success');
     updateBackend(thiz, true);
   }
 }
 
 function showPIN(thiz)
 {
-  alert("PIN used by this valve: " + jQuery(thiz).parent().parent().parent().data('sprinkler').pin );
+  alert("PIN used by this valve: " + jQuery(thiz).parent().parent().data('sprinkler').pin );
 }
 
 function deleteStation(thiz)
 {
-  s = jQuery(thiz).parent().parent().parent().data('sprinkler');
+  s = jQuery(thiz).parent().parent().data('sprinkler');
   if (confirm('Are you sure you wish to delete "' + s.name + '" (PIN ' + s.pin + ')')) {
-    jQuery(thiz).parent().parent().parent().remove();
+    jQuery(thiz).parent().parent().remove();
     $.ajax({
       type:"POST",
       contentType: "application/json; charset=utf-8",
@@ -88,15 +105,15 @@ function toggleManual(thiz)
   j = jQuery(thiz);
   s = j.parent().parent().data('sprinkler');
   if (s.open) {
-    j.removeClass('btn-success').addClass('btn-primary').text('Manual');
+    j.removeClass('btn-success').addClass('btn-primary').html('<svg class="bi bi-play" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10.804 8L5 4.633v6.734L10.804 8zm.792-.696a.802.802 0 010 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696l6.363 3.692z" clip-rule="evenodd"/></svg>');
     updateBackend(thiz, false);
   } else {
     // First, remove any other ones
     $('#sprinklers #open').each(function() {
-      $(this).removeClass('btn-success').addClass('btn-primary').text('Manual');
+      $(this).removeClass('btn-success').addClass('btn-primary').html('<svg class="bi bi-play" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10.804 8L5 4.633v6.734L10.804 8zm.792-.696a.802.802 0 010 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696l6.363 3.692z" clip-rule="evenodd"/></svg>');
       $(this).parent().parent().data('sprinkler').open = false;
     });
-    j.removeClass('btn-primary').addClass('btn-success').text('Stop');
+    j.removeClass('btn-primary').addClass('btn-success').html('<svg class="bi bi-stop" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3.5 5A1.5 1.5 0 015 3.5h6A1.5 1.5 0 0112.5 5v6a1.5 1.5 0 01-1.5 1.5H5A1.5 1.5 0 013.5 11V5zM5 4.5a.5.5 0 00-.5.5v6a.5.5 0 00.5.5h6a.5.5 0 00.5-.5V5a.5.5 0 00-.5-.5H5z" clip-rule="evenodd"/></svg>');
     updateBackend(thiz, true);
   }
 }
@@ -105,6 +122,12 @@ function addSprinkler(sprinkler)
 {
   var e = $('#template').clone().removeAttr('id').removeClass('d-none').attr('id', 'entry');
   setSprinkler(sprinkler, e);
+
+  if (sprinkler.open) {
+    e.find('#open').removeClass('btn-primary').addClass('btn-success').html('<svg class="bi bi-stop" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3.5 5A1.5 1.5 0 015 3.5h6A1.5 1.5 0 0112.5 5v6a1.5 1.5 0 01-1.5 1.5H5A1.5 1.5 0 013.5 11V5zM5 4.5a.5.5 0 00-.5.5v6a.5.5 0 00.5.5h6a.5.5 0 00.5-.5V5a.5.5 0 00-.5-.5H5z" clip-rule="evenodd"/></svg>');
+  }
+
+  e.find('#gpio').text(sprinkler.pin);
 
   e.find('#name').change(function() { updateBackend(this, null); });
   e.find('#duration').change(function() { updateBackend(this, null); });
@@ -189,6 +212,43 @@ function setup() {
     });
   });
 
+  // Load settings
+  loadSettings();
+  $('#showSettings').click(function() {
+    $('#otherSettings').modal('show');
+  });
+  $('#cancel').click(function() {
+    $('#otherSettings').modal('hide');
+    loadSettings();
+  });
+  $('#save').click(function() {
+    data = {
+      time : $('#time').val(),
+      timing : $('#timing').val()
+    };
+    if (isNaN(parseInt(data.time))) {
+      alert('Time has to be a number');
+      return;
+    }
+    data.time = parseInt(data.time);
+    if (data.time < 0 || data.time > 2359) {
+      alert('Time has to be a value between 0 and 2359');
+      return;
+    }
+
+    $.ajax({
+        type:"POST",
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        url: '/settings',
+        data: JSON.stringify(data),
+    }).done(function(e, data) {
+      $('#otherSettings').modal('hide');
+    }).fail(function(e, data) {
+      alert('Unable to load settings, please reload');
+    });
+  });
+
   $.ajax({
     url:"/sprinklers",
     type:"GET",
@@ -199,6 +259,52 @@ function setup() {
     }
   }).fail(function(e, data) {
     alert('Unable to load sprinklers')
+  });
+
+  $.ajax({
+        type:"GET",
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        url: '/program',
+    }).done(function(e, data) {
+      if (e.running)
+        $('#programRunning').modal('show')
+    }).fail(function(e, data) {
+      alert('Unable to load program state, please reload');
+    });
+
+  $('#stopProgram').click(function() {
+    if (confirm('Are you sure?')) {
+      $.ajax({
+            type:"POST",
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            url: '/program',
+            data: JSON.stringify({stop: true})
+        }).done(function(e, data) {
+          if (!e.running)
+            $('#programRunning').modal('hide')
+        }).fail(function(e, data) {
+          alert('Unable to load program state, please reload');
+        });
+    }
+  });
+
+  $('#runProgram').click(function() {
+    if (confirm('Are you sure?')) {
+      $.ajax({
+            type:"POST",
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            url: '/program',
+            data: JSON.stringify({start: true})
+        }).done(function(e, data) {
+          if (e.running)
+            $('#programRunning').modal('show')
+        }).fail(function(e, data) {
+          alert('Unable to get program state, please reload');
+        });
+    }
   });
 }
 

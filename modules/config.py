@@ -15,22 +15,35 @@
 # You should have received a copy of the GNU General Public License
 # along with rainfall.  If not, see <http://www.gnu.org/licenses/>.
 #
-
+import os
 import json
 
 class config:
+  FILE_SPRINKLER = 'conf/sprinklers.json'
+  FILE_CONFIG = 'conf/config.json'
+
   def __init__(self):
     self.sprinklers = []
     self.config = {'start-time' : 400}
 
   def save(self):
-    with open('conf/sprinklers.json', 'w') as f:
+    with open(config.FILE_SPRINKLER, 'w') as f:
       json.dump(self.sprinklers, f, ensure_ascii=False)
-    with open('conf/config.json', 'w') as f:
+    with open(config.FILE_CONFIG, 'w') as f:
       json.dump(self.config, f, ensure_ascii=False)
 
   def load(self):
-    with open('conf/sprinklers.json', 'r') as f:
-      self.sprinklers = json.load(f)
-    with open('conf/config.json', 'r') as f:
-      self.config = json.load(f)
+    if os.path.exists(config.FILE_SPRINKLER):
+      with open(config.FILE_SPRINKLER, 'r') as f:
+        self.sprinklers = json.load(f)
+    else:
+      self.sprinklers = []
+
+    if os.path.exists(config.FILE_CONFIG):
+      with open(config.FILE_CONFIG, 'r') as f:
+        self.config = json.load(f)
+    else:
+      self.config = {
+        'time' : 400,
+        'timing' : 0
+      }
