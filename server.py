@@ -78,7 +78,7 @@ def get_sprinkler(id):
         'id' : s.id,
         'name' : s.name,
         'enabled' : s.enabled,
-        'running' : s.valve.enabled,
+        'open' : s.valve.enabled,
         'pin' : s.valve.getUserData(),
         'group' : 0,
         'schedule' : {
@@ -94,7 +94,7 @@ def get_sprinkler(id):
       'id' : s.id,
       'name' : s.name,
       'enabled' : s.enabled,
-      'running' : s.valve.enabled,
+      'open' : s.valve.enabled,
       'pin' : s.valve.getUserData(),
       'group' : 0,
       'schedule' : {
@@ -171,7 +171,7 @@ def control_delete():
   if 'id' in j:
     if rf.deleteSprinkler(j['id']):
       rf.save()
-      return make_response('', 200)
+      return jsonify({'deleted' : j['id']})
   return abort(404)
 
 rf.load()

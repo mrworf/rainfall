@@ -21,7 +21,7 @@
 
     <div class="input-group mb-3 d-none" id="template">
       <div class="input-group-prepend">
-        <button class="btn btn-primary" id="override">Manual</button>
+        <button id="open" class="btn btn-primary">Manual</button>
       </div>
       <input id="name" type="text" class="form-control" aria-label="Name" placeholder="(name of sprinkler)">
       <div class="input-group-prepend">
@@ -91,7 +91,38 @@
       </div>
     </div>
     <div id="sprinklers"></div>
-    <button type="button" class="btn btn-primary" id="addnew">Add sprinkler</button>
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addSprinklerDialog">Add sprinkler</button>
+
+    <div id="addSprinklerDialog" class="modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Adding a new sprinkler</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon1">Name of station</span>
+              </div>
+              <input id="add_name" type="text" class="form-control" placeholder="(name)" aria-label="name" aria-describedby="basic-addon1">
+            </div>
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon1">PIN on Raspberry</span>
+              </div>
+              <input id="add_pin" type="text" class="form-control" placeholder="(number)" aria-label="pin" aria-describedby="basic-addon1">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" id="add">Add</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <script type="text/javascript">
       $(function() {
@@ -100,28 +131,3 @@
     </script>
   </body>
 </html>
-<!--
-<html>
-  <head>
-    <title>Sprinkler controls</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
-
-    <script src="js/main.js"></script>
-    <link rel="stylesheet" type="text/css" href="css/main.css">
-  </head>
-  <body>
-
-    <span id="list">
-    </span>
-    <button id="override" style="display: none">Start sprinkler program now</button>
-  </body>
-<script type="text/javascript">
-  $(function() {
-    setup();
-  });
-</script>
-</html>
--->
