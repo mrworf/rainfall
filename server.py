@@ -32,16 +32,19 @@ if __name__ != '__main__':
   print('ERROR: This should not be imported')
   sys.exit(255)
 
+# Make sure we base all File IO from where we live
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
 parser = argparse.ArgumentParser(description="Rainfall - A RaspberryPi based sprinkler controller", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--port', default=7770, type=int, help="Port to listen on")
 parser.add_argument('--listen', default="0.0.0.0", help="Address to listen on")
 parser.add_argument('--debug', action='store_true', default=False, help='Enable loads more logging')
 cmdline = parser.parse_args()
 
-if cmdline.debug:
-  logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(message)s')
-else:
-  logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(message)s')
+#if cmdline.debug:
+logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(message)s')
+#else:
+#  logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(message)s')
 
 """ Disable some logging by-default """
 logging.getLogger("Flask-Cors").setLevel(logging.ERROR)

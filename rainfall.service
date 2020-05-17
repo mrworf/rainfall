@@ -3,7 +3,7 @@ Description=Sprinkler System
 After=network.target
 
 [Service]
-ExecStart=/opt/rainfall/rainfall.py
+ExecStart=/opt/rainfall/server.py
 Restart=always
 
 [Install]

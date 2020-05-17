@@ -19,12 +19,15 @@ import os
 import json
 
 class config:
-  FILE_SPRINKLER = 'conf/sprinklers.json'
-  FILE_CONFIG = 'conf/config.json'
+  DIR_BASE = 'conf/'
+  FILE_SPRINKLER = DIR_BASE + 'sprinklers.json'
+  FILE_CONFIG = DIR_BASE + 'config.json'
 
   def __init__(self):
     self.sprinklers = []
     self.config = {'start-time' : 400}
+    if not os.path.exists(config.DIR_BASE):
+      os.mkdir(config.DIR_BASE)
 
   def save(self):
     with open(config.FILE_SPRINKLER, 'w') as f:
