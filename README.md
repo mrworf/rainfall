@@ -131,6 +131,7 @@ Each relay on the board has 3 connections (this is simplified)
 - ON (left)
 - OUTPUT (middle)
 - OFF (right)
+
 ![relays](https://github.com/mrworf/rainfall/blob/master/images/board2.jpg?raw=true)
 
 What it means is that the OUTPUT (middle) is connected to OFF (right) when the GPIO is low.
@@ -206,4 +207,4 @@ Continue to add the sprinklers you wired up. Don't worry, it will stop you from 
 
 - Press "Other settings"
 This will open a dialog where you can choose how the start time is calculated as well as the time it uses.
-(https://github.com/mrworf/rainfall/blob/master/images/ux3.png?raw=true)
+![settings](https://github.com/mrworf/rainfall/blob/master/images/ux3.png?raw=true)
