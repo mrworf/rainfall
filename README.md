@@ -1,6 +1,14 @@
 # rainfall
 A python based sprinkler system which uses any raspberry pi connected to a relay board of your choice to control the sprinkler valves.
 
+## disclaimer
+
+I take no responsibility for any loss or problems that may come from using this software or following the
+instructions.
+
+While I test and use this myself, there are many moving parts which could go wrong.
+Please take care in wiring and using this.
+
 # background
 
 I was using 2 x EzFlower. EzFlower is an insteon based 8 channel relay. The logic for the sprinklers still
@@ -100,9 +108,102 @@ sudo ./install.sh
 sudo poweroff
 ```
 
-# using
+# connecting hardware
+
+## Wiring a ELEGOO 8 channel board to the RPi
+
+The board has a number of pins, we'll connect 10 of them.
+![pins](https://github.com/mrworf/rainfall/blob/master/images/board1.jpg?raw=true)
+
+- GND will be connected to any of the ground pins on the raspberry pi
+
+![pin out](https://github.com/mrworf/rainfall/blob/master/images/pin.png?raw=true)
+
+- IN1 through IN8 can be connected to any of the GPIO pins labelled 2 through 26.
+- VCC will be connected to one of the two 5V outputs on the Raspberry Pi.
+
+Make a note of which GPIOs going to which pin on the ELEGOO board since we'll need
+that when adding the sprinklers to the UX.
+
+## Wiring the sprinklers to the ELEGOO board
+
+Each relay on the board has 3 connections (this is simplified)
+- ON (left)
+- OUTPUT (middle)
+- OFF (right)
+![relays](https://github.com/mrworf/rainfall/blob/master/images/board2.jpg?raw=true)
+
+What it means is that the OUTPUT (middle) is connected to OFF (right) when the GPIO is low.
+When GPIO is high, OUTPUT is connected to ON (left).
+
+What we want to do is to use the ON and OUTPUT connections. This makes sure that the
+relays won't power the sprinkler valves if the raspberry pi is off.
+
+Sprinkler valves use 24 VAC (AC current) and that means that all we need to do is send
+the current to the right sprinkler.
+
+All sprinklers will have a common lead, this should be wired directly to the AC power supply.
+The individual leads from the sprinklers should be connected to the individual relay's OUTPUT terminal.
+Lastly, the ON terminal on each relay should all be powered by the other terminal on the AC power supply.
+
+In the end, it may look something like this:
+![an example](https://github.com/mrworf/rainfall/blob/master/images/board3.jpg?raw=true)
+
+## Powering up
+
+_*PLEASE DOUBLECHECK ALL CONNECTIONS, YOU DON'T WANT 24 VAC REACHING THE RPI*_
+
+Connecting the AC power should _not_ have any effect. If your sprinklers go off, you've probably wired it
+to the OFF state instead which means power is sent to the OUTPUT when no signal is sent from the raspberry pi.
+
+Once all looks good, power off the AC again and power up the Raspberry Pi.
+
+If you hear alot of relay clacking after doing this, it means you missed the step with configuring the GPIOs
+as mentioned above. Luckily you didn't have the AC connected so nothing happened. Please revisit the install steps
+above.
+
+Otherwise, if the relay boards are quiet and no leds on (which indicate an ON state), feel free to connect
+the AC again. You are now ready to configure the software.
+
+## I have more than 8 zones
+
+Simply wire a second ELEGOO board as described above. By default, all Raspberry Pis have two 5V outputs
+on the board making this an easy task (as long as you note down the GPIOs being used).
+
+## I have more than 16 zones
+
+Cool. First of all, you need a Raspberry Pi Zero, 3 or 4 to do this. The older RPis simply don't have all the GPIOs exposed.
+Secondly, there won't be any more 5V outputs to easily tap into, so you'll have to find it somewhere else, or simply splice into
+one of the existing 5V leads.
+
+There should be enough GND and GPIOs that you will essentially have 2 GPIOs left over once done.
+
+## Is there any more photos?
+
+Yes, please visit my [photo album](https://photos.app.goo.gl/zsZV9URi4drs93DB8)
+
+# using it
 
 The service runs on port 7770 by default, so once your raspberry is running, point your web browser to the
 address of the device like so:
 http://my.device.address:7770/
 
+## Adding your first sprinkler
+
+- Press "Add sprinkler" button
+This will open a dialog to define a sprinkler
+![add dialog](https://github.com/mrworf/rainfall/blob/master/images/ux2.png?raw=true)
+Here you need to enter a name and a pin.
+- name
+  Can be whatever you want
+- pin
+  Refers to the GPIO pin on the Raspberry Pi
+  ![pin out](https://github.com/mrworf/rainfall/blob/master/images/pin.png?raw=true)
+
+Continue to add the sprinklers you wired up. Don't worry, it will stop you from double using the GPIOs
+
+## Setting a schedule
+
+- Press "Other settings"
+This will open a dialog where you can choose how the start time is calculated as well as the time it uses.
+(https://github.com/mrworf/rainfall/blob/master/images/ux3.png?raw=true)
