@@ -193,7 +193,9 @@ http://my.device.address:7770/
 
 - Press "Add sprinkler" button
 This will open a dialog to define a sprinkler
+
 ![add dialog](https://github.com/mrworf/rainfall/blob/master/images/ux2.png?raw=true)
+
 Here you need to enter a name and a pin.
 - name
   Can be whatever you want
@@ -207,4 +209,5 @@ Continue to add the sprinklers you wired up. Don't worry, it will stop you from 
 
 - Press "Other settings"
 This will open a dialog where you can choose how the start time is calculated as well as the time it uses.
+
 ![settings](https://github.com/mrworf/rainfall/blob/master/images/ux3.png?raw=true)
