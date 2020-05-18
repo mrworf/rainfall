@@ -39,6 +39,8 @@ parser = argparse.ArgumentParser(description="Rainfall - A RaspberryPi based spr
 parser.add_argument('--port', default=7770, type=int, help="Port to listen on")
 parser.add_argument('--listen', default="0.0.0.0", help="Address to listen on")
 parser.add_argument('--debug', action='store_true', default=False, help='Enable loads more logging')
+parser.add_argument('--virtual', action='store_true', default=False, help='Uses a virtual GPIO driver to allow testing without GPIOs')
+parser.add_argument('--accelerate', action='store_true', default=False, help='Change timing to run perceived wall clock at a much faster time')
 cmdline = parser.parse_args()
 
 #if cmdline.debug:
@@ -52,7 +54,14 @@ logging.getLogger("werkzeug").setLevel(logging.ERROR)
 
 """ Initialize the REST server """
 app = Flask(__name__, static_url_path='')
-rf = rainfall()
+rf = rainfall(useVirtual=cmdline.virtual, accelerateTime=cmdline.accelerate)
+
+def convertInt(str):
+  try:
+    str = int(float(str))
+  except:
+    pass
+  return str
 
 """ So we can host the content here as well """
 @app.route('/js/<path:path>')
@@ -71,7 +80,6 @@ def file_resources(path):
   return abort(404)
 
 @app.route('/sprinklers', defaults={'id': None})
-@app.route('/sprinklers/<int:id>')
 def get_sprinkler(id):
   result = None
   if id is None:
@@ -184,7 +192,7 @@ def settings():
   else:
     for k in request.json:
       if k in rf.config.config:
-        rf.config.config[k] = request.json[k];
+        rf.config.config[k] =(request.json[k])
       else:
         return abort(404)
     rf.save()

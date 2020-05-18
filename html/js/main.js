@@ -1,3 +1,19 @@
+/**
+  * This file is part of rainfall (https://github.com/mrworf/rainfall).
+  *
+  * rainfall is free software: you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation, either version 3 of the License, or
+  * (at your option) any later version.
+  *
+  * rainfall is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+  * along with rainfall.  If not, see <http://www.gnu.org/licenses/>.
+  */
 function loadSettings()
 {
   $.ajax({
@@ -6,6 +22,10 @@ function loadSettings()
       dataType: "json",
       url: '/settings',
   }).done(function(e, data) {
+    // Special case for time
+    e['time_hour'] = Math.floor(e.time / 60);
+    e['time_minute']= e.time % 60;
+    console.log(e);
     for(i in e) {
       $('#otherSettings').find('#' + i).val(e[i]);
     }
@@ -223,18 +243,9 @@ function setup() {
   });
   $('#save').click(function() {
     data = {
-      time : $('#time').val(),
-      timing : $('#timing').val()
+      time : parseInt($('#time_hour').val())*60 + parseInt($('#time_minute').val()),
+      timing : parseInt($('#timing').val())
     };
-    if (isNaN(parseInt(data.time))) {
-      alert('Time has to be a number');
-      return;
-    }
-    data.time = parseInt(data.time);
-    if (data.time < 0 || data.time > 2359) {
-      alert('Time has to be a value between 0 and 2359');
-      return;
-    }
 
     $.ajax({
         type:"POST",

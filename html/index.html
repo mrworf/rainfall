@@ -1,4 +1,20 @@
 <!doctype html>
+<!--
+- This file is part of rainfall (https://github.com/mrworf/rainfall).
+-
+- rainfall is free software: you can redistribute it and/or modify
+- it under the terms of the GNU General Public License as published by
+- the Free Software Foundation, either version 3 of the License, or
+- (at your option) any later version.
+-
+- rainfall is distributed in the hope that it will be useful,
+- but WITHOUT ANY WARRANTY; without even the implied warranty of
+- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- GNU General Public License for more details.
+-
+- You should have received a copy of the GNU General Public License
+- along with rainfall.  If not, see <http://www.gnu.org/licenses/>.
+-->
 <html lang="en">
   <head>
     <!-- Required meta tags -->
@@ -168,7 +184,23 @@
                 <option value="0">Finish by</option>
                 <option value="1">Start at</option>
               </select>
-              <input id="time" type="text" class="form-control" aria-label="HH:MM" placeholder="(24h time)">
+              <select id="time_hour" class="custom-select" id="inputGroupSelect03">
+                  <script>
+                    for (i = 0; i != 24; ++i) {
+                      document.write('<option value="' + i + '">' + i + '</option>')
+                    }
+                  </script>
+              </select>
+              <div class="input-group-prepend">
+                <label class="input-group-text" for="inputGroupSelect01">:</label>
+              </div>
+              <select id="time_minute" class="custom-select" id="inputGroupSelect03">
+                  <script>
+                    for (i = 0; i != 59; ++i) {
+                      document.write('<option value="' + i + '">' + i + '</option>')
+                    }
+                  </script>
+              </select>
             </div>
             <p class="text-left">
               "Start at" will start the sprinkler program at that specific time
@@ -177,10 +209,10 @@
               "Finish by" will start the sprinkler program so it finishes at the selected time
             </p>
             <p class="text-left">
-              All times are given in military time (for now).
+              All times are given in 24h (for now).
             </p>
             <p class="text-left">
-               Meaning that 400 = 4am, 1430 = 2.30pm
+               Meaning that 4:00 = 4am, 14:30 = 2.30pm
             </p>
 
             <!-- -->

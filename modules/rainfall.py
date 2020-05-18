@@ -29,7 +29,6 @@ from modules.valve import valve
 from modules.program import program
 from modules.schedule import schedule
 from modules.sprinkler import sprinkler
-from modules.gpiodrv import gpiodrv
 from modules.config import config
 
 class rainfall(Thread):
@@ -43,15 +42,22 @@ class rainfall(Thread):
   EVT_RECALCULATE = 3
   EVT_RUN_PROGRAM = 4
 
-  def __init__(self):
+  def __init__(self, useVirtual=False, accelerateTime=False):
     Thread.__init__(self)
     self._sprinklers = []
     self._sprinklerid = 0
-    self.gpiodrv = gpiodrv()
+    if useVirtual:
+      from modules.virtualdrv import virtualdrv
+      self.gpiodrv = virtualdrv()
+    else:
+      from modules.gpiodrv import gpiodrv
+      self.gpiodrv = gpiodrv()
     self.config = config()
     self.events = []
     self.delayer = Event()
     self.programRunning = False
+    self.accelerateTime = accelerateTime
+    logging.warning('Accelerating wallclock')
 
   def addSprinkler(self, pin, name):
     return self.__addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin,  pin),  name=name).setSchedule(1, 1, 1, 0)
@@ -125,9 +131,15 @@ class rainfall(Thread):
     Thread.start(self)
 
   def run(self):
-    self.program = program(self._sprinklers)
+    self.program = program(self._sprinklers, 1 if self.accelerateTime else 60)
+    now = 0
+    if self.accelerateTime:
+      dt = datetime.today()
+      now = (dt.hour * 60 + dt.minute)
+      now = 0
+
     while not self.quit:
-      self.delayer.wait(30) # +/- 30s response time
+      self.delayer.wait(30 if not self.accelerateTime else 0.1 ) # +/- 30s response time
       self.delayer.clear()
       forceRun = False
       # Handle potential events
@@ -138,7 +150,7 @@ class rainfall(Thread):
         elif evt['event'] == rainfall.EVT_CLOSE:
           self.getSprinkler(evt['value']).valve.setEnable(False)
         elif evt['event'] == rainfall.EVT_RECALCULATE:
-          self.program = program(self._sprinklers)
+          self.program = program(self._sprinklers, 1 if self.accelerateTime else 60)
         elif evt['event'] == rainfall.EVT_RUN_PROGRAM:
           forceRun = True
 
@@ -148,22 +160,32 @@ class rainfall(Thread):
           logging.error('Valve %d (%s), pin #%d has been open for %d seconds which exceeds max runtime (%d). Closing', s.id, s.name, s.valve.getUserData(), (time.time() - s.valve.enableAt), rainfall.MAX_RUNTIME)
           s.valve.setEnable(False)
 
-      dt = datetime.today()
-      now = (dt.hour * 60 + dt.minute)
+      if self.accelerateTime:
+        now = (now + 1) % 1440
+        if now % 30 == 0:
+          logging.debug('Assumed time is now: %d:%02d', now / 60, now % 60)
+      else:
+        dt = datetime.today()
+        now = (dt.hour * 60 + dt.minute)
       run = False
       if self.config.config['timing'] == rainfall.DEADLINE_FINISHBY and now == self.getStartTime():
         deadline = self.getStartTime()
-        logging.info('Deadline is %d:%02d, sprinklers will start now at %d:%02d since they take an estimated %d minutes to run',
-          self.config.config['timing'] / 60,
-          self.config.config['timing'] % 60,
+        logging.info('Deadline is %d:%02d, sprinklers will start at %d:%02d since they take an estimated %d minutes to run and should be done by %d:%02d',
+          self.config.config['time'] / 60,
+          self.config.config['time'] % 60,
           deadline / 60,
           deadline % 60,
-          self.program.getEstimatedDuration())
+          self.program.getEstimatedDuration(),
+          now / 60,
+          now % 60
+          )
         run = True
       elif self.config.config['timing'] == rainfall.DEADLINE_START and now == self.config.config['time']:
-        logging.info('Deadline is %d:%02d, sprinklers will start now. Estimated runtime is %d minutes',
+        logging.info('Deadline is %d:%02d, sprinklers will start now at %d:%02d. Estimated runtime is %d minutes',
           self.config.config['timing'] / 60,
           self.config.config['timing'] % 60,
+          now / 60,
+          now % 60,
           self.program.getEstimatedDuration())
         run = True
       if run or forceRun:
@@ -171,11 +193,12 @@ class rainfall(Thread):
         self.program.run()
         self.programRunning = False
         # It's assumed that the run takes more than a minute
-        self.program = program(self._sprinklers)
+        self.program = program(self._sprinklers, 1 if self.accelerateTime else 60)
 
   def getStartTime(self):
-    minutes = self.config.config['timing']
+    minutes = self.config.config['time']
     deadline = minutes - self.program.getEstimatedDuration()
+    #logging.debug('Deadline is %d', deadline)
     if deadline < 0:
       deadline += (24*60)
     return deadline % 1440
