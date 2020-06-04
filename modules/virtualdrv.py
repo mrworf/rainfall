@@ -18,21 +18,33 @@
 import logging
 
 class virtualdrv:
-  def __init__(self):
+  def __init__(self, stateChange):
     self.pin = None
     self.hw = None
+    self.stateChange = stateChange
     logging.warning('Using virtual GPIO driver. No actual GPIO changes will happen!')
+
+  def notifyChange(self, pin, state):
+    if self.stateChange is None:
+      return
+    self.stateChange(pin, state)
 
   def enablePin(self, pin):
     if self.pin != pin:
       if self.pin is not None and self.hw is not None:
         logging.info('Turning off pin %d', self.pin)
+        self.notifyChange(self.pin, False)
       self.pin = pin
       self.hw = True
+    self.notifyChange(self.pin, True)
     logging.info('Turning on pin %d', pin)
 
   def disablePin(self, pin):
     if self.pin != pin:
       # Not enabled in the first place
       return
+    self.notifyChange(self.pin, False)
     logging.info('Turning off pin %d', pin)
+
+  def initPin(self, pin):
+    pass

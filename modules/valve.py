@@ -17,6 +17,7 @@
 
 import logging
 import time
+from modules.audit import audit
 
 class valve:
   def __init__(self, cbEnable, cbDisable, userData):
@@ -32,14 +33,16 @@ class valve:
     return self._userData
 
   def setEnable(self, enable):
+    self.enabled = enable
     if enable and self._cbEnable:
       logging.debug('Opening valve')
       self.enableAt = time.time()
+      audit.addEvent('VALVE', 'setEnable(%s) on valve %s' % ('True' if enable else 'False', repr(self._userData)))
       self._cbEnable(self._userData)
     elif self.enabled and self._cbDisable:
       logging.debug('Closing valve')
       self.enableAt = None
+      audit.addEvent('VALVE', 'setEnable(%s) on valve %s' % ('True' if enable else 'False', repr(self._userData)))
       self._cbDisable(self._userData)
-    self.enabled = enable
     return self
 

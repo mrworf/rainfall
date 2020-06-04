@@ -20,7 +20,7 @@ function loadSettings()
       type:"GET",
       contentType: "application/json; charset=utf-8",
       dataType: "json",
-      url: '/settings',
+      url: 'settings',
   }).done(function(e, data) {
     // Special case for time
     e['time_hour'] = Math.floor(e.time / 60);
@@ -65,10 +65,10 @@ function updateBackend(thiz, value)
   var s2 = ['duration', 'cycles', 'days', 'shift'];
 
   if (s1.includes(i)) {
-    req.url = '/sprinkler/' + s.id;
+    req.url = 'sprinkler/' + s.id;
     req.data = JSON.stringify( { [i] : v} );
   } else if (s2.includes(i)) {
-    req.url = '/schedule/' + s.id;
+    req.url = 'schedule/' + s.id;
     req.data = JSON.stringify( { [i] : v} );
   }
   $.ajax( req ).done(function(e, data){
@@ -110,7 +110,7 @@ function deleteStation(thiz)
       type:"POST",
       contentType: "application/json; charset=utf-8",
       dataType: "json",
-      url: '/delete',
+      url: 'delete',
       data: JSON.stringify({ id: s.id })
     }).done(function(e, data){
       ;
@@ -208,7 +208,7 @@ function setup() {
       type:"POST",
       contentType: "application/json; charset=utf-8",
       dataType: "json",
-      url: '/add',
+      url: 'add',
       data: JSON.stringify({
         'enabled' : true,
         'name' : name,
@@ -251,7 +251,7 @@ function setup() {
         type:"POST",
         contentType: "application/json; charset=utf-8",
         dataType: "json",
-        url: '/settings',
+        url: 'settings',
         data: JSON.stringify(data),
     }).done(function(e, data) {
       $('#otherSettings').modal('hide');
@@ -276,7 +276,7 @@ function setup() {
         type:"GET",
         contentType: "application/json; charset=utf-8",
         dataType: "json",
-        url: '/program',
+        url: 'program',
     }).done(function(e, data) {
       if (e.running)
         $('#programRunning').modal('show')
@@ -290,7 +290,7 @@ function setup() {
             type:"POST",
             contentType: "application/json; charset=utf-8",
             dataType: "json",
-            url: '/program',
+            url: 'program',
             data: JSON.stringify({stop: true})
         }).done(function(e, data) {
           if (!e.running)
@@ -307,7 +307,7 @@ function setup() {
             type:"POST",
             contentType: "application/json; charset=utf-8",
             dataType: "json",
-            url: '/program',
+            url: 'program',
             data: JSON.stringify({start: true})
         }).done(function(e, data) {
           if (e.running)

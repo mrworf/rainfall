@@ -44,20 +44,22 @@ class rainfall(Thread):
 
   def __init__(self, useVirtual=False, accelerateTime=False):
     Thread.__init__(self)
+    self.daemon = True
     self._sprinklers = []
     self._sprinklerid = 0
     if useVirtual:
       from modules.virtualdrv import virtualdrv
-      self.gpiodrv = virtualdrv()
+      self.gpiodrv = virtualdrv(self.onChange)
     else:
       from modules.gpiodrv import gpiodrv
-      self.gpiodrv = gpiodrv()
+      self.gpiodrv = gpiodrv(self.onChange)
     self.config = config()
     self.events = []
     self.delayer = Event()
     self.programRunning = False
     self.accelerateTime = accelerateTime
-    logging.warning('Accelerating wallclock')
+    if self.accelerateTime:
+      logging.warning('Accelerating wallclock')
 
   def addSprinkler(self, pin, name):
     return self.__addSprinkler(valve(self.gpiodrv.enablePin, self.gpiodrv.disablePin,  pin),  name=name).setSchedule(1, 1, 1, 0)
@@ -107,6 +109,7 @@ class rainfall(Thread):
       self.save()
 
     self.listSprinkler()
+    self.__resetSprinklers()
 
   def save(self):
     self.config.sprinklers = []
@@ -212,6 +215,10 @@ class rainfall(Thread):
   def getSprinklers(self):
     return self._sprinklers
 
+  def __resetSprinklers(self):
+    for s in self._sprinklers:
+      self.gpiodrv.initPin(s.valve.getUserData())
+
   def listSprinkler(self):
     for _sprinkler in self._sprinklers:
       logging.debug('%3d : (%3s | %-8s) %-40s %2dmin, %2d cycles, Every %2d days (shifted %d days)' % (
@@ -259,3 +266,11 @@ class rainfall(Thread):
   def programStart(self):
     if not self.programRunning:
       self.addEvent(rainfall.EVT_RUN_PROGRAM, 0)
+
+  def onChange(self, pin, enabled):
+    # Called by GPIO driver to notify that a PIN has changed state
+    # This should be inside the valve, but for now...
+    for sprinkler in self._sprinklers:
+      if sprinkler.valve.getUserData() == pin and sprinkler.valve.enabled != enabled:
+        logging.debug('Valve state does not reflect actual state, change %d to %s' % (pin, 'open' if enabled else 'closed'))
+        sprinkler.valve.enabled = enabled

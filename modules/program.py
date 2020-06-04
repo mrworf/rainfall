@@ -20,6 +20,7 @@ import time
 import math
 
 from threading import Thread
+from modules.audit import audit
 
 class program(Thread):
   def __init__(self, sprinklers, timeScale=60):
@@ -69,6 +70,10 @@ class program(Thread):
     logging.info('Starting program with %d sprinklers, expected runtime %d minutes (1 min = %d seconds)', len(self.work), self.duration, self.timeScale)
     cycle = 0
 
+    audit.addEvent('PROGRAM', 'Initialized with %d sprinklers. Expected runtime %d minutes' % (len(self.work), self.duration))
+
+    startTime = time.time()
+
     while remaining > 0 and not self.quit:
       remaining = 0
       cycle += 1
@@ -91,4 +96,15 @@ class program(Thread):
           sprinkler.valve.setEnable(False)
           self.active['cycles'] += 1
           remaining += (sprinkler.schedule.cycles - self.active['cycles'])
+
+    endTime = time.time()
+    runTime = endTime - startTime
+
+    audit.addEvent('PROGRAM', 'Ended after %d.%02d minutes, end reason was %s' %
+      (
+        math.floor(runTime / 60),
+        int(runTime % 60),
+        "completed" if not self.quit else "user ended it"
+      )
+    )
     self.done = True
