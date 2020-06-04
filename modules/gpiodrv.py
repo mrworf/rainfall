@@ -32,9 +32,10 @@ class gpiodrv:
 
   def enablePin(self, pin):
     if self.pin != pin:
-      if self.pin is not None and self.hw is not None:
+      if self.hw is not None:
         logging.debug('Turning off pin %d', self.pin)
         self.hw.off()
+        self.hw.close()
         self.notifyChange(self.pin, False)
       self.pin = pin
       self.hw = gpiozero.LED(pin, active_high=False)
@@ -55,5 +56,6 @@ class gpiodrv:
     if pin == self.pin:
       logging.warning('Cannot init a PIN which is in-use')
       return
-    # Simply creating the object will reset the GPIO, but just to be sure
-    gpiozero.LED(pin, active_high=False).off()
+    t = gpiozero.LED(pin, active_high=False)
+    t.off()
+    t.close()

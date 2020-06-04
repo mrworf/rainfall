@@ -38,7 +38,7 @@ class audit:
   @staticmethod
   def addEvent(tag, message):
     if audit._INSTANCE is None:
-      logging.error('Cannot use audit module, not initialized')
+      #logging.error('Cannot use audit module, not initialized')
       return
     self = audit._INSTANCE
 
@@ -61,7 +61,7 @@ class audit:
   @staticmethod
   def getEvents(latestEvents=True):
     if audit._INSTANCE is None:
-      logging.error('Cannot use audit module, not initialized')
+      #logging.error('Cannot use audit module, not initialized')
       return
     self = audit._INSTANCE
     return self.latestEvents
@@ -69,7 +69,7 @@ class audit:
   @staticmethod
   def numberOfEvents(latestEvents=True):
     if audit._INSTANCE is None:
-      logging.error('Cannot use audit module, not initialized')
+      #logging.error('Cannot use audit module, not initialized')
       return
     self = audit._INSTANCE
     return len(self.latestEvents)

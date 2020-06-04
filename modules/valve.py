@@ -33,13 +33,14 @@ class valve:
     return self._userData
 
   def setEnable(self, enable):
-    self.enabled = enable
     if enable and self._cbEnable:
+      self.enabled = enable
       logging.debug('Opening valve')
       self.enableAt = time.time()
       audit.addEvent('VALVE', 'setEnable(%s) on valve %s' % ('True' if enable else 'False', repr(self._userData)))
       self._cbEnable(self._userData)
     elif self.enabled and self._cbDisable:
+      self.enabled = enable
       logging.debug('Closing valve')
       self.enableAt = None
       audit.addEvent('VALVE', 'setEnable(%s) on valve %s' % ('True' if enable else 'False', repr(self._userData)))
