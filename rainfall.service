@@ -5,6 +5,7 @@ After=network.target
 [Service]
 ExecStart=/opt/rainfall/server.py
 Restart=always
+Type=simple
 
 [Install]
 WantedBy=multi-user.target

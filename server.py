@@ -21,6 +21,7 @@ import logging
 import argparse
 import sys
 import json
+import signal
 
 from flask import Flask, request, send_file, abort, jsonify, make_response, send_from_directory
 from flask_httpauth import HTTPBasicAuth
@@ -210,6 +211,13 @@ def program():
     elif 'start' in request.json:
       rf.programStart()
     return jsonify({'running' : rf.programRunning})
+
+def sig_handler(signum, frame):
+  logging.info('Signal received, quitting')
+  sys.exit(0)
+
+signal.signal(signal.SIGTERM, sig_handler)
+signal.signal(signal.SIGINT, sig_handler)
 
 rf.load()
 rf.start()
