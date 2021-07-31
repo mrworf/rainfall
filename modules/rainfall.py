@@ -129,6 +129,16 @@ class rainfall(Thread):
         })
       self.config.save()
 
+  def getProgramStart(self):
+    if self.config.config['timing'] == rainfall.DEADLINE_FINISHBY:
+      return self.getStartTime()
+    elif self.config.config['timing'] == rainfall.DEADLINE_START:
+      return self.config.config['time']
+    return -1
+
+  def getProgramDuration(self):
+    return self.program.getEstimatedDuration()
+
   def start(self):
     self.quit = False
     Thread.start(self)

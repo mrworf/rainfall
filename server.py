@@ -203,14 +203,26 @@ def settings():
 @app.route('/program', methods=['POST', 'GET'])
 def program():
   if request.method == 'GET':
-    return jsonify({'running' : rf.programRunning})
+    return jsonify({
+      'running' : rf.programRunning,
+      'start' : rf.getProgramStart(),
+      'duration' : rf.getProgramDuration()
+    })
   else:
     if 'stop' in request.json:
       rf.programStop()
-      return jsonify({'running' : False})
+      return jsonify({
+        'running' : False,
+        'start' : rf.getProgramStart(),
+        'duration' : rf.getProgramDuration()
+      })
     elif 'start' in request.json:
       rf.programStart()
-    return jsonify({'running' : rf.programRunning})
+    return jsonify({
+      'running' : rf.programRunning,
+      'start' : rf.getProgramStart(),
+      'duration' : rf.getProgramDuration()
+    })
 
 def sig_handler(signum, frame):
   logging.info('Signal received, quitting')

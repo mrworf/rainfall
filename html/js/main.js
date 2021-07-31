@@ -175,6 +175,16 @@ function setSprinkler(sprinkler, obj)
   obj.find('#shift').val(sprinkler.schedule.shift);
 }
 
+function time2str(m, units) {
+  h = Math.floor(m / 60);
+  m = Math.floor(m % 60);
+  if (m < 10 && !units)
+    m = '0' + m;
+  if (units)
+    return h + 'h' + m + 'm';
+  return h + ':' + m;
+}
+
 function setup() {
   $('#add').click(function() {
     name = $('#add_name').val().trim()
@@ -280,6 +290,8 @@ function setup() {
     }).done(function(e, data) {
       if (e.running)
         $('#programRunning').modal('show')
+      // Update the runtime info
+      $('#next-run').text('Next scheduled run happens at ' + time2str(e.start, false) + ' (runtime of ' + time2str(e.duration, true) + ')');
     }).fail(function(e, data) {
       alert('Unable to load program state, please reload');
     });
