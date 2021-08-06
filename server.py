@@ -134,6 +134,7 @@ def control_sprinkler(id):
     if 'group' in j:
       rf.getSprinkler(id).setGroup(j['group'])
     rf.save()
+    rf.settingsChanged()
   return get_sprinkler(id)
 
 @app.route('/schedule/<int:id>', methods=['GET', 'POST'])
@@ -152,6 +153,7 @@ def control_schedule(id):
     if 'shift' in j:
       rf.getSprinkler(id).schedule.setShift(j['shift'])
     rf.save()
+    rf.settingsChanged()
   s = rf.getSprinkler(id)
   return jsonify({
     'duration' : s.schedule.duration,
@@ -175,6 +177,7 @@ def control_add():
   s.setEnable(j['enabled'])
   s.setSchedule(j['schedule']['duration'], j['schedule']['cycles'], j['schedule']['days'], j['schedule']['shift'])
   rf.save()
+  rf.settingsChanged()
   return get_sprinkler(s.id)
 
 @app.route('/delete', methods=['POST'])
@@ -183,6 +186,7 @@ def control_delete():
   if 'id' in j:
     if rf.deleteSprinkler(j['id']):
       rf.save()
+      rf.settingsChanged()
       return jsonify({'deleted' : j['id']})
   return abort(404)
 

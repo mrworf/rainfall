@@ -25,7 +25,6 @@ function loadSettings()
     // Special case for time
     e['time_hour'] = Math.floor(e.time / 60);
     e['time_minute']= e.time % 60;
-    console.log(e);
     for(i in e) {
       $('#otherSettings').find('#' + i).val(e[i]);
     }
@@ -78,6 +77,7 @@ function updateBackend(thiz, value)
     }
     setSprinkler(e, jj);
     j.removeAttr('disabled');
+    updateProgramStatus();
   }).fail(function(e, data) {
     alert('Unable to update sprinklers, please reload!');
   });
@@ -113,7 +113,7 @@ function deleteStation(thiz)
       url: 'delete',
       data: JSON.stringify({ id: s.id })
     }).done(function(e, data){
-      ;
+      updateProgramStatus();
     }).fail(function(e, data) {
       alert('Unable to delete sprinkler station, please reload!');
     });
@@ -173,6 +173,25 @@ function setSprinkler(sprinkler, obj)
   obj.find('#cycles').val(sprinkler.schedule.cycles);
   obj.find('#days').val(sprinkler.schedule.days);
   obj.find('#shift').val(sprinkler.schedule.shift);
+  if (!sprinkler.enabled) {
+    obj.find('#enable').removeClass('btn-success').addClass('btn-secondary');
+  }
+}
+
+function updateProgramStatus() {
+  $.ajax({
+        type:"GET",
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        url: 'program',
+    }).done(function(e, data) {
+      if (e.running)
+        $('#programRunning').modal('show')
+      // Update the runtime info
+      $('#next-run').text('Next scheduled run happens at ' + time2str(e.start, false) + ' (runtime of ' + time2str(e.duration, true) + ')');
+    }).fail(function(e, data) {
+      alert('Unable to load program state, please reload');
+    });
 }
 
 function time2str(m, units) {
@@ -236,7 +255,7 @@ function setup() {
       $('#addSprinklerDialog').modal('hide');
       $('#add_name').val('');
       $('#add_pin').val('');
-
+      updateProgramStatus();
     }).fail(function(e, data) {
       alert('Unable to add sprinkler station, please reload!');
     });
@@ -282,19 +301,7 @@ function setup() {
     alert('Unable to load sprinklers')
   });
 
-  $.ajax({
-        type:"GET",
-        contentType: "application/json; charset=utf-8",
-        dataType: "json",
-        url: 'program',
-    }).done(function(e, data) {
-      if (e.running)
-        $('#programRunning').modal('show')
-      // Update the runtime info
-      $('#next-run').text('Next scheduled run happens at ' + time2str(e.start, false) + ' (runtime of ' + time2str(e.duration, true) + ')');
-    }).fail(function(e, data) {
-      alert('Unable to load program state, please reload');
-    });
+  updateProgramStatus();
 
   $('#stopProgram').click(function() {
     if (confirm('Are you sure?')) {
