@@ -216,6 +216,25 @@
             <p class="text-left">
                Meaning that 4:00 = 4am, 14:30 = 2.30pm
             </p>
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <label class="input-group-text" for="inputGroupSelect01">Scale the schedule</label>
+              </div>
+              <select id="scaling" class="custom-select" id="inputGroupSelect03">
+                  <script>
+                    for (i = 1; i != 11; ++i) {
+                      var name = "x" + i;
+                      if (i == 1)
+                        name = "disable";
+
+                      document.write('<option value="' + i + '">' + name + '</option>')
+                    }
+                  </script>
+              </select>
+            </div>
+            <p class="text-left">
+              Scaling will multiply the Everyday/Every other day/etc by the selected factor. A value of 2 will change all "everyday" to "every other day", "every 2nd day" to "every 4th day", etc...
+            </p>
 
             <!-- -->
           </div>

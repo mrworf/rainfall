@@ -188,7 +188,10 @@ function updateProgramStatus() {
       if (e.running)
         $('#programRunning').modal('show')
       // Update the runtime info
-      $('#next-run').text('Next scheduled run happens at ' + time2str(e.start, false) + ' (runtime of ' + time2str(e.duration, true) + ')');
+      if (e.duration > 0)
+        $('#next-run').text('Next scheduled run happens at ' + time2str(e.start, false) + ' (runtime of ' + time2str(e.duration, true) + ')');
+      else
+        $('#next-run').text('No scheduled sprinklers today, next run in ' + e.next + ' day' + (e.next > 1 ? 's' : ''));
     }).fail(function(e, data) {
       alert('Unable to load program state, please reload');
     });
@@ -273,7 +276,8 @@ function setup() {
   $('#save').click(function() {
     data = {
       time : parseInt($('#time_hour').val())*60 + parseInt($('#time_minute').val()),
-      timing : parseInt($('#timing').val())
+      timing : parseInt($('#timing').val()),
+      scaling : parseInt($('#scaling').val())
     };
 
     $.ajax({
@@ -284,6 +288,7 @@ function setup() {
         data: JSON.stringify(data),
     }).done(function(e, data) {
       $('#otherSettings').modal('hide');
+      updateProgramStatus();
     }).fail(function(e, data) {
       alert('Unable to load settings, please reload');
     });

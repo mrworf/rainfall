@@ -18,11 +18,12 @@
 import logging
 
 class schedule:
-  def __init__(self, duration=1, cycles=1, days=1, shiftDay=0):
+  def __init__(self, duration=1, cycles=1, days=1, shiftDay=0, scaling=1):
     self.setDuration(duration)
     self.setCycles(cycles)
     self.setDays(days)
     self.setShift(shiftDay)
+    self.setScaling(scaling)
 
   def setDuration(self, duration):
     self.duration = 1 if duration < 1 else duration
@@ -35,3 +36,9 @@ class schedule:
 
   def setShift(self, shiftDay):
     self.shift = 0 if shiftDay < 0 else shiftDay
+
+  def setScaling(self, scaling):
+    self.scaling = 1 if scaling < 1 else scaling
+
+  def getCalculatedDays(self):
+    return self.days * self.scaling

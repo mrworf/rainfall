@@ -23,15 +23,23 @@ from threading import Thread
 from modules.audit import audit
 
 class program(Thread):
-  def __init__(self, sprinklers, timeScale=60):
+  def __init__(self, sprinklers, scaling, timeScale=60):
     Thread.__init__(self)
     self.work = []
     self.duration = 0
+    self.daysBeforeNextRun = 9999
     for sprinkler in sprinklers:
       if not sprinkler.enabled:
         continue
-      if (self._getDayCounter() + sprinkler.schedule.shift) % sprinkler.schedule.days != 0:
-        logging.debug('Skipping %s due to days=%d, shift=%d setting', sprinkler.name, sprinkler.schedule.days, sprinkler.schedule.shift)
+      # Make sure scaling is applied appropiately
+      sprinkler.schedule.setScaling(scaling)
+      calcDay = sprinkler.schedule.getCalculatedDays()
+      daysBeforeNextRun = calcDay - ((self._getDayCounter() + sprinkler.schedule.shift) % calcDay)
+      if daysBeforeNextRun == calcDay:
+        daysBeforeNextRun = 0
+      self.daysBeforeNextRun = min(self.daysBeforeNextRun, daysBeforeNextRun)
+      if daysBeforeNextRun != 0:
+        logging.debug('Skipping %s due to days=%d x %d, shift=%d setting (next run in %d days)', sprinkler.name, sprinkler.schedule.days, sprinkler.schedule.scaling, sprinkler.schedule.shift, daysBeforeNextRun)
         continue
 
       work = {
@@ -41,6 +49,7 @@ class program(Thread):
       self.work.append(work)
       self.duration += sprinkler.schedule.duration * sprinkler.schedule.cycles
 
+    logging.debug('Next earliest run in %d days', self.daysBeforeNextRun)
     self.active = None
     self.time = 0
     self.timeScale = timeScale
@@ -48,6 +57,9 @@ class program(Thread):
     self.quit = False
     if len(self.work) == 0:
       logging.warning('No (enabled) sprinklers were provided')
+
+  def getDaysBeforeNextRun(self):
+    return self.daysBeforeNextRun
 
   def getEstimatedDuration(self):
     return self.duration

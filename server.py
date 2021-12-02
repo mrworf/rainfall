@@ -210,7 +210,8 @@ def program():
     return jsonify({
       'running' : rf.programRunning,
       'start' : rf.getProgramStart(),
-      'duration' : rf.getProgramDuration()
+      'duration' : rf.getProgramDuration(),
+      'next' : rf.getProgramDaysUntilNext()
     })
   else:
     if 'stop' in request.json:

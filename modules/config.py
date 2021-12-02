@@ -42,11 +42,15 @@ class config:
     else:
       self.sprinklers = []
 
+    self.config = {
+      'time' : 400,
+      'timing' : 0,
+      'scaling' : 1
+    }
+
     if os.path.exists(config.FILE_CONFIG):
       with open(config.FILE_CONFIG, 'r') as f:
-        self.config = json.load(f)
-    else:
-      self.config = {
-        'time' : 400,
-        'timing' : 0
-      }
+        loaded = json.load(f)
+        self.config = {**self.config, **loaded}
+
+    print(f'Config: {self.config}')

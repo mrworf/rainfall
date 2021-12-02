@@ -56,6 +56,7 @@ class rainfall(Thread):
     self.config = config()
     self.events = []
     self.delayer = Event()
+    self.waiter = Event()
     self.programRunning = False
     self.accelerateTime = accelerateTime
     if self.accelerateTime:
@@ -73,7 +74,7 @@ class rainfall(Thread):
     return False
 
   def __addSprinkler(self, valve, id=None, name=None, enable=True):
-    s = sprinkler(valve, schedule(), enable)
+    s = sprinkler(valve, schedule(scaling=self.config.config['scaling'] ), enable)
     if id is None:
       s.setId(self._sprinklerid)
     else:
@@ -139,12 +140,18 @@ class rainfall(Thread):
   def getProgramDuration(self):
     return self.program.getEstimatedDuration()
 
+  def getProgramDaysUntilNext(self):
+    return self.program.getDaysBeforeNextRun()
+
   def start(self):
     self.quit = False
     Thread.start(self)
 
+  def _refreshProgram(self):
+    self.program = program(self._sprinklers, self.config.config['scaling'], 1 if self.accelerateTime else 60)
+
   def run(self):
-    self.program = program(self._sprinklers, 1 if self.accelerateTime else 60)
+    self._refreshProgram()
     now = 0
     if self.accelerateTime:
       dt = datetime.today()
@@ -163,9 +170,10 @@ class rainfall(Thread):
         elif evt['event'] == rainfall.EVT_CLOSE:
           self.getSprinkler(evt['value']).valve.setEnable(False)
         elif evt['event'] == rainfall.EVT_RECALCULATE:
-          self.program = program(self._sprinklers, 1 if self.accelerateTime else 60)
+          self._refreshProgram()
         elif evt['event'] == rainfall.EVT_RUN_PROGRAM:
           forceRun = True
+      self.waiter.set()
 
       # Watchdog!
       for s in self._sprinklers:
@@ -206,7 +214,8 @@ class rainfall(Thread):
         self.program.run()
         self.programRunning = False
         # It's assumed that the run takes more than a minute
-        self.program = program(self._sprinklers, 1 if self.accelerateTime else 60)
+        self._refreshProgram()
+
 
   def getStartTime(self):
     minutes = self.config.config['time']
@@ -256,15 +265,18 @@ class rainfall(Thread):
         return _sprinkler.schedule.cycles * _sprinkler.schedule.duration
     return 0
 
-  def addEvent(self, event, value):
+  def addEvent(self, event, value, waitForIt=False):
+    self.waiter.clear()
     self.events.append({'event':event, 'value':value})
     self.delayer.set()
+    if waitForIt:
+      self.waiter.wait()
 
   def openSprinkler(self, id, open):
     self.addEvent(rainfall.EVT_OPEN if open else rainfall.EVT_CLOSE, id)
 
   def settingsChanged(self):
-    self.addEvent(rainfall.EVT_RECALCULATE, 0)
+    self.addEvent(rainfall.EVT_RECALCULATE, 0, True)
 
   def setGroup(self, id, group):
     pass # Not yet implemented
